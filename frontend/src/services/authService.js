@@ -14,10 +14,10 @@ export const authService = {
   // Login user
   login: async (email, password) => {
     try {
-      const response = await api.post('/login', { email, password });
+      const response = await api.post('/login', { user: { email, password } });
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data?.error || 'Login failed. Please check your credentials.';
     }
   },
 
@@ -31,13 +31,16 @@ export const authService = {
     }
   },
 
-  // Get current user profile
+  // Get current user profile - Using session from Rails
   getCurrentUser: async () => {
     try {
-      // This endpoint needs to be implemented in your backend
-      const response = await api.get('/current_user');
+      // This will return the current user if logged in, or 401 if not
+      const response = await api.get('/users/current');
       return response.data;
     } catch (error) {
+      if (error.response?.status === 401) {
+        return null; // No user logged in
+      }
       console.error('Get current user error:', error);
       throw error;
     }
